@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@NamedQuery(name="User.byId", query = "SELECT u FROM User u WHERE u.id = ?1")
 public class User {
 
     @Id

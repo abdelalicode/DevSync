@@ -18,13 +18,15 @@ public class UserService {
 
 
     public void addUser(User user) {
-
         userRepository.save(user);
     }
 
+    public User findUserById(int id) {
+        return userRepository.findById(id);
+    }
+
     public List<User> getAllUsers() {
-        List<User> allUsers = userRepository.findAll();
-        return allUsers;
+        return userRepository.findAll();
     }
 
 

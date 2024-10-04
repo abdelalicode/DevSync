@@ -40,9 +40,56 @@ public class UserRepository {
 
 
     public List<User> findAll() {
-        return null;
+        return entityManager.createQuery("SELECT u FROM User u", User.class).getResultList();
     }
 
+    public User findById(int id) {
+        return entityManager.find(User.class, id);
+    }
 
+    public void delete(int id) {
+        try {
+            transaction.begin();
+            User user = entityManager.find(User.class, id);
+            if (user != null) {
+                entityManager.remove(user);
+            }
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            if (entityManager.isOpen()) {
+                entityManager.close();
+            }
+            if (entityManagerFactory.isOpen()) {
+                entityManagerFactory.close();
+            }
+        }
+    }
+
+    public void update(User user) {
+        try {
+            transaction.begin();
+            entityManager.merge(user);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            if (entityManager.isOpen()) {
+                entityManager.close();
+            }
+            if (entityManagerFactory.isOpen()) {
+                entityManagerFactory.close();
+            }
+        }
+
+
+    }
 
 }
