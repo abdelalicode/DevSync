@@ -1,12 +1,11 @@
 package com.devsync.repository.Implementations;
 
 import com.devsync.domain.entity.User;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.Persistence;
+import jakarta.persistence.*;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
 
 public class UserRepository {
 
@@ -14,14 +13,16 @@ public class UserRepository {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     EntityTransaction transaction = entityManager.getTransaction();
 
-    public void save(User user) {
 
+    public boolean save(User user) {
+        boolean isSaved = false;
         try {
             transaction.begin();
 
             entityManager.persist(user);
 
             transaction.commit();
+            isSaved = true;
         } catch (Exception e) {
             if (transaction.isActive()) {
                 transaction.rollback();
@@ -35,16 +36,30 @@ public class UserRepository {
                 entityManagerFactory.close();
             }
         }
+        return isSaved;
 
     }
 
 
+
     public List<User> findAll() {
+
         return entityManager.createQuery("SELECT u FROM User u", User.class).getResultList();
     }
 
     public User findById(int id) {
         return entityManager.find(User.class, id);
+    }
+
+    public Optional<User> findByEmail(String email) {
+        try {
+            User user = entityManager.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class)
+                .setParameter("email", email)
+                .getSingleResult();
+            return Optional.of(user);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
     }
 
     public void delete(int id) {
@@ -80,13 +95,6 @@ public class UserRepository {
                 transaction.rollback();
             }
             e.printStackTrace();
-        } finally {
-            if (entityManager.isOpen()) {
-                entityManager.close();
-            }
-            if (entityManagerFactory.isOpen()) {
-                entityManagerFactory.close();
-            }
         }
 
 
