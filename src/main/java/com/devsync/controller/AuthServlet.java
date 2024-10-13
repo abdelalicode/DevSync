@@ -1,6 +1,7 @@
 package com.devsync.controller;
 
 import com.devsync.domain.entity.User;
+import com.devsync.repository.Implementations.TokenRepository;
 import com.devsync.repository.Implementations.UserRepository;
 import com.devsync.service.UserService;
 import jakarta.servlet.ServletException;
@@ -18,9 +19,11 @@ public class AuthServlet extends HttpServlet {
     private UserService userService;
 
 
+
     public void init() {
         UserRepository userRepository = new UserRepository();
-        this.userService = new UserService(userRepository);
+        TokenRepository tokenRepository = new TokenRepository();
+        this.userService = new UserService(userRepository , tokenRepository);
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -29,7 +32,7 @@ public class AuthServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         if (session != null && session.getAttribute("user") != null) {
-            response.sendRedirect(request.getContextPath() + "/");
+            response.sendRedirect(request.getContextPath() + "/home");
         }
         else {
             if(authForm.equals("login")) {
@@ -58,7 +61,7 @@ public class AuthServlet extends HttpServlet {
             if(user.isPresent()) {
                 HttpSession session = request.getSession(false);
                 session.setAttribute("user", user.get());
-                response.sendRedirect(request.getContextPath() + "/");
+                response.sendRedirect(request.getContextPath() + "/home");
             }
             else {
                 request.setAttribute("errorUser", "No User Found");

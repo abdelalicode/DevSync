@@ -1,11 +1,14 @@
 package com.devsync.service;
 
 
+import com.devsync.domain.entity.Token;
 import com.devsync.domain.entity.User;
+import com.devsync.repository.Implementations.TokenRepository;
 import com.devsync.repository.Implementations.UserRepository;
 import com.devsync.util.DateUtils;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -15,9 +18,11 @@ public class UserService {
 
 
     private UserRepository userRepository;
+    private TokenRepository tokenRepository;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, TokenRepository tokenRepository) {
         this.userRepository = userRepository;
+        this.tokenRepository = tokenRepository;
     }
 
 
@@ -29,6 +34,7 @@ public class UserService {
         Random random = new Random();
         int randomNumber = random.nextInt(9000);
         String username = firstName + randomNumber;
+
         User user = new User();
         user.setFirstName(firstName);
         user.setLastName(lastName);
@@ -36,7 +42,23 @@ public class UserService {
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
         user.setPassword(hashedPassword);
         user.setUsername(username);
-        return userRepository.save(user);
+
+        boolean isUserSaved = userRepository.save(user);
+
+        if (isUserSaved) {
+            Token token = new Token();
+            token.setUser(user);
+            token.setDailyModificationTokens(2);
+            token.setMonthlyDeletionTokens(1);
+            token.setLastDailyReset(LocalDate.now());
+            token.setLastMonthlyReset(LocalDate.now());
+
+            tokenRepository.save(token);
+
+            return true;
+        }
+
+        return false;
     }
 
     public Optional<User> loginUser(String email, String password){
@@ -49,12 +71,12 @@ public class UserService {
 
     }
 
-    public User findUserById(int id) {
+    public User getUserById(Long id) {
         return userRepository.findById(id);
     }
 
 
-    public boolean updateUser(int id, String firstName, String lastName, String email) {
+    public User updateUser(Long id, String firstName, String lastName, String email) {
 
         User user = userRepository.findById(id);
 
@@ -64,10 +86,10 @@ public class UserService {
 
 
         try {
-            userRepository.update(user);
-            return true;
+            return userRepository.update(user);
+
         } catch (Exception e) {
-            return false;
+            return null;
         }
     }
 

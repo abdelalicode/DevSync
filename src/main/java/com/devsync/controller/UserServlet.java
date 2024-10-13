@@ -2,6 +2,7 @@ package com.devsync.controller;
 
 
 import com.devsync.domain.entity.User;
+import com.devsync.repository.Implementations.TokenRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,7 +23,8 @@ public class UserServlet extends HttpServlet {
 
     public void init() {
         UserRepository userRepository = new UserRepository();
-        this.userService = new UserService(userRepository);
+        TokenRepository tokenRepository = new TokenRepository();
+        this.userService = new UserService(userRepository, tokenRepository);
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -51,13 +53,14 @@ public class UserServlet extends HttpServlet {
         String action = request.getParameter("action");
         if ("updateUser".equals(action)) {
             String userId = request.getParameter("userId");
-            int id = Integer.parseInt(userId);
+            Long id = Long.parseLong(userId);
             String firstName = request.getParameter("firstName");
             String lastName = request.getParameter("lastName");
             String email = request.getParameter("email");
 
-            userService.updateUser(id, firstName, lastName, email);
-            response.sendRedirect(request.getContextPath() + "/users");
+            User updated = userService.updateUser(id, firstName, lastName, email);
+            request.getSession().setAttribute("user", updated);
+            response.sendRedirect(request.getContextPath() + "/home");
 
         }
     }
