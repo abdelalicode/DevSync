@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Entity
 @Table(name = "users", schema = "public")
@@ -44,5 +45,28 @@ public class User {
     @Column(nullable = false, updatable = false)
     private LocalDate registeredAt;
 
+    @OneToMany(mappedBy = "assignee", cascade = CascadeType.ALL)
+    private List<Task> tasks;
 
+    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL)
+    private List<Task> createdTasks;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Token token;
+
+
+    @Override
+    public String toString() {
+        return "User{" +
+            "id=" + id +
+            ", username='" + username + '\'' +
+            ", password='" + password + '\'' +
+            ", firstName='" + firstName + '\'' +
+            ", lastName='" + lastName + '\'' +
+            ", email='" + email + '\'' +
+            ", role=" + role +
+            ", registeredAt=" + registeredAt +
+            ", token=" + token +
+            '}';
+    }
 }
