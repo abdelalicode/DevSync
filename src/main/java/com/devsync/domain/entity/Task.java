@@ -36,8 +36,7 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private TaskStatus status;
 
-    @NotNull(message = "Start date is required.")
-    @FutureOrPresent(message = "Deadline cannot be in the past.")
+
     private LocalDateTime dueDate;
 
     @ManyToOne 

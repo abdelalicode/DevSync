@@ -31,12 +31,12 @@ public class TaskScheduler {
     }
 
     public void start() {
-        scheduler.scheduleAtFixedRate(this::checkAndUpdateTasks, 0, 24, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::checkAndUpdateTasks, 0, 24, TimeUnit.HOURS);
     }
 
     private void checkAndUpdateTasks() {
         logger.info("AAAAAAAA");
-        List<Task> overdueTasks = taskService.getTasks(null).stream()
+        List<Task> overdueTasks = taskService.getAllTasks().stream()
             .filter(task -> task.getStatus() != TaskStatus.COMPLETED && task.getDueDate().isBefore(LocalDateTime.now()))
             .collect(Collectors.toList());
 

@@ -59,6 +59,10 @@ public class TaskService {
 
     }
 
+    public List<Task> getAllTasks () {
+        return  taskRepository.findAll();
+    }
+
     public List<Task> getUnassignedTasks() {
         List<Task> allTasks =  taskRepository.findAll();
         List<Task> unassignedTasks = allTasks.stream()
