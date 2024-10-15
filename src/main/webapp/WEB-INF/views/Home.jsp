@@ -242,7 +242,7 @@
 
         <h2 class="py-3  text-lg font-semibold text-teal-800">Your Board</h2>
         <div class="grid grid-cols-3 gap-4 min-h-96">
-            <div class="bg-white max-h-screen" id="todo-column">
+            <div class="bg-slate-50 max-h-screen" id="todo-column">
                 <div class="bg-slate-50 px-4 pb-2">
                     <span class="bg-red-400 text-red-800 text-xs font-medium me-2 px-1.5 rounded-full dark:bg-red-900 dark:text-red-300"></span>
                     <span class="font-semibold text-xs">To Do</span>
@@ -253,13 +253,13 @@
     <c:if test="${task.status == 'TODO'}">
 
         <div class="">
-            <div class="relative max-w-sm max-h-lg min-h-md draggable-card mb-[12px]" id="card-${task.id}">
+            <div class="relative  max-w-sm max-h-lg min-h-md shadow-lg  draggable-card mb-[12px]" id="card-${task.id}">
 
     <button data-modal-target="popup-mod${task.id}" data-modal-toggle="popup-mod${task.id}"  type="button" class="absolute hover:bg-red-400 top-0 right-0 z-10 text-white bg-transparent  focus:ring-0 focus:ring-blue-300 font-medium  text-sm px-2 py-1  mb-2 dark:bg-blue-600  focus:outline-none dark:focus:ring-blue-800">
         <img width="10" height="10" src="https://img.icons8.com/ios-filled/50/delete-sign--v1.png" alt="delete-sign--v1"/>
     </button>
 
-    <div class="relative h-32 p-2  bg-white   border-2 border-red-500 rounded-md">
+    <div class="relative h-32 p-2  bg-white border-l-4 border-red-500 ">
                     <div class="flex items-center -mt-1">
                         <h3 class="ml-3 text-xs font-bold text-gray-800"><c:out value="${task.title}" /></h3>
                     </div>
@@ -300,12 +300,22 @@
                                 </c:otherwise>
                             </c:choose>
 
-                            <button id="dropdownUsersButton-${task.id}" data-dropdown-toggle="dropdownUsers-${task.id}" data-dropdown-placement="bottom"
-                                    class="bg-transparent focus:ring-0  font-medium rounded-lg text-sm inline-flex items-center">
-                                <svg class="w-2.5 h-2.5 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4" />
-                                </svg>
-                            </button>
+                            <c:choose>
+                                <c:when test="${task.refused and user.role == 'INDIVIDUAL'}">
+
+                                </c:when>
+                                <c:otherwise>
+                                    <button id="dropdownUsersButton-${task.id}" data-dropdown-toggle="dropdownUsers-${task.id}" data-dropdown-placement="bottom"
+                                            class="bg-transparent focus:ring-0  font-medium rounded-lg text-sm inline-flex items-center">
+                                        <svg class="w-2.5 h-2.5 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4" />
+                                        </svg>
+                                    </button>
+                                </c:otherwise>
+                            </c:choose>
+
+
+
 
                             <!-- Dropdown menu -->
                             <div id="dropdownUsers-${task.id}" class="z-50 hidden bg-white rounded-lg shadow w-60 dark:bg-gray-700">
@@ -316,7 +326,7 @@
                                             <c:if test="${task.createdBy.role == 'MANAGER'}">
                                                 <div class="flex space-x-8 items-center p-3 text-xs font-medium text-blue-600 border-t border-gray-200 rounded-b-lg bg-gray-50 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-blue-500 hover:underline">
                                                     <p>Change The Task</p>
-                                                    <p><c:out value="${userToken.dailyModificationTokens} Tokens Left"/></p>
+                                                    <p><c:out value="${user.token.dailyModificationTokens} Tokens Left"/></p>
                                                 </div>
                                                 <c:forEach items="${ unassignedTasks }" var="unassignedtask" varStatus="status">
 
@@ -393,6 +403,19 @@
         </div>
 
                 </div>
+
+
+
+
+
+                    <c:if test="${user.role == 'MANAGER' && task.refused}">
+                        <div class="absolute p-3 h-2/5 inset-0 z-20 bg-yellow-300 pointer-events-none">
+                            <p class="text-black font-semibold text-xs">THIS TASK HAS BEEN CHANGED</p>
+                            <p class="text-black font-medium text-[10px]">Assign it to someone else</p>
+                        </div>
+                    </c:if>
+
+
             </div>
         </div>
     </c:if>
@@ -430,7 +453,7 @@
 </c:forEach>
 </div>
 
-            <div class="bg-white  " id="ongoing-column" >
+            <div class="bg-slate-50  max-h-screen " id="ongoing-column" >
                 <div class="bg-slate-50 px-4 pb-2">
                     <span class="bg-green-400 text-red-800 text-xs font-medium me-2 px-1.5 rounded-full dark:bg-red-900 dark:text-red-300"></span>
                     <span class="font-semibold text-xs">On Going</span>
@@ -440,11 +463,11 @@
                     <c:if test="${task.status == 'ONGOING'}">
 
                         <div class="">
-                            <div class="relative max-w-sm max-h-12 draggable-card mb-[84px]" id="card-${task.id}">
+                            <div class="relative max-w-sm max-h-12   draggable-card mb-[92px]" id="card-${task.id}">
                                 <button data-modal-target="popup-mod${task.id}" data-modal-toggle="popup-mod${task.id}"  type="button" class="absolute hover:bg-red-400 top-0 right-0 z-10 text-white bg-transparent  focus:ring-0 focus:ring-blue-300 font-medium  text-sm px-2 py-1  mb-2 dark:bg-blue-600  focus:outline-none dark:focus:ring-blue-800">
                                     <img width="10" height="10" src="https://img.icons8.com/ios-filled/50/delete-sign--v1.png" alt="delete-sign--v1"/>
                                 </button>
-                                <div class="relative h-32 p-2  bg-white   border-2 border-green-500 rounded-md">
+                                <div class="relative h-32 p-2  bg-white   border-l-4 border-green-500 ">
                                     <div class="flex items-center -mt-1">
                                         <h3 class="ml-3 text-xs font-bold text-gray-800"><c:out value="${task.title}" /></h3>
                                     </div>
@@ -538,7 +561,7 @@
 
             </div>
 
-            <div class="bg-white" id="completed-column">
+            <div class="bg-slate-50" id="completed-column">
                 <div class="bg-slate-50 px-4 pb-2">
                     <span class="bg-blue-400 text-red-800 text-xs font-medium me-2 px-1.5 rounded-full dark:bg-red-900 dark:text-red-300"></span>
                     <span class="font-semibold text-xs">Completed</span>
@@ -548,11 +571,11 @@
                     <c:if test="${task.status == 'COMPLETED'}">
 
                         <div class="">
-                            <div class="relative max-w-sm max-h-12 draggable-card mb-[84px]" id="card-${task.id}">
+                            <div class="relative max-w-sm max-h-12 draggable-card  mb-[92px]" id="card-${task.id}">
                                 <button data-modal-target="popup-mod${task.id}" data-modal-toggle="popup-mod${task.id}"  type="button" class="absolute hover:bg-red-400 top-0 right-0 z-10 text-white bg-transparent  focus:ring-0 focus:ring-blue-300 font-medium  text-sm px-2 py-1  mb-2 dark:bg-blue-600  focus:outline-none dark:focus:ring-blue-800">
                                     <img width="10" height="10" src="https://img.icons8.com/ios-filled/50/delete-sign--v1.png" alt="delete-sign--v1"/>
                                 </button>
-                                <div class="relative h-32 p-2  bg-white   border-2 border-blue-500 rounded-md">
+                                <div class="relative h-32 p-2  bg-white   border-l-4 border-blue-500">
                                     <div class="flex items-center -mt-1">
                                         <h3 class="ml-3 text-xs font-bold text-gray-800"><c:out value="${task.title}" /></h3>
                                     </div>
@@ -617,8 +640,13 @@
 
 
 
-    </div>
+
+
+
 </div>
+</div>
+
+
 
 
 

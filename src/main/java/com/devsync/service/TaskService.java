@@ -12,6 +12,7 @@ import com.devsync.repository.Implementations.TaskRepository;
 import com.devsync.repository.Implementations.TokenRepository;
 import com.devsync.repository.Implementations.UserRepository;
 import com.devsync.util.DateUtils;
+import com.devsync.util.UserUtils;
 import jakarta.servlet.http.HttpSession;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -114,11 +115,15 @@ public class TaskService {
         System.out.println(userToken);
 
         if(Objects.equals(task.getCreatedBy().getId(), user.getId())) {
+/*
             System.out.println(task);
+*/
             return taskRepository.delete(taskId);
         }
         else if(userToken.getMonthlyDeletionTokens() > 0) {
+/*
             System.out.println(3);
+*/
             taskRepository.delete(taskId);
             userToken.setMonthlyDeletionTokens(userToken.getMonthlyDeletionTokens() - 1);
             tokenRepository.update(userToken);
@@ -144,13 +149,15 @@ public class TaskService {
         {
             task.setAssignee(user);
             oldTask.setAssignee(null);
+            oldTask.setRefused(true);
+            oldTask.setChangeDate(LocalDateTime.now());
 
             taskRepository.update(task);
             taskRepository.update(oldTask);
 
             userToken.setDailyModificationTokens(userToken.getDailyModificationTokens() - 1);
 
-            tokenRepository.update(userToken);
+            Token updatedToken = tokenRepository.update(userToken);
 
             return true;
         }
@@ -173,6 +180,31 @@ public class TaskService {
 
         return taskRemainingDaysMap;
     }
+
+
+
+    public Map<Tag, Double> calculateCompletePercentageByTag(List<Task> tasks, List<Tag> tags) {
+       Map<Tag, Double> completePercentageMap = new HashMap<>();
+        for(Tag tag : tags) {
+
+
+        List<Task> tasksWithTag = tasks.stream()
+            .filter(task -> task.getTags().contains(tag))
+            .collect(Collectors.toList());
+
+        long completedTasks = tasksWithTag.stream()
+            .filter(task -> task.getStatus() == TaskStatus.COMPLETED)
+            .count();
+
+       double percentage=  tasksWithTag.isEmpty() ? 0 : (double) completedTasks / tasksWithTag.size() * 100;
+
+       completePercentageMap.put(tag, percentage);
+
+        }
+
+        return completePercentageMap;
+    }
+
 
 
 

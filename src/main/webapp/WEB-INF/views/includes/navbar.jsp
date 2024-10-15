@@ -2,7 +2,7 @@
 
 <nav class="bg-transparent px-8 border-gray-200 dark:bg-gray-900">
     <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-        <a href="" class="flex items-center space-x-3 rtl:space-x-reverse">
+        <a href="${pageContext.request.contextPath}/home" class="flex items-center space-x-3 rtl:space-x-reverse">
             <img width="48" height="48" src="https://img.icons8.com/external-simple-solid-edt.graphics/100/FAB005/external-List-web-development-simple-solid-edt.graphics-2.png" alt="external-List-web-development-simple-solid-edt.graphics-2"/>
                     </a>
         <div class="flex items-center md:order-2 space-x-1 md:space-x-0 rtl:space-x-reverse">
@@ -23,11 +23,20 @@
 
                     </li>
                     <li>
-                        <form action="auth" method="POST"class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white">
+                        <form action="auth" method="POST" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white">
                             <input type="hidden" name="form" value="logout" />
                             <button type="submit">Logout</button>
                         </form>
                     </li>
+                    <c:if test="${user.role == 'MANAGER'}">
+                        <a href="${pageContext.request.contextPath}/stats" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">
+                            <div class="inline-flex items-center">
+                                Show Stats
+                            </div>
+                        </a>
+                    </c:if>
+
+
 
                 </ul>
             </div>

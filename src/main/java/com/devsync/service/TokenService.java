@@ -28,6 +28,18 @@ public class TokenService {
         return tokenRepository.findByUser(user);
     }
 
+    public Token updateToken(Token token) {
+
+        /*Token existingToken = tokenRepository.findById(token.getId());
+
+        if (existingToken != null) {*/
+            Token updtToken = tokenRepository.update(token);
+            return updtToken;
+       /* }
+
+        return null;*/
+    }
+
 
 
 

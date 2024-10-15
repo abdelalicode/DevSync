@@ -61,6 +61,14 @@ public class Task {
     private LocalDateTime creationDate;
 
 
+    @Column(name = "isrefused", nullable = false)
+    private boolean refused;
+
+    @CreationTimestamp
+    @Column(nullable = true)
+    private LocalDateTime changeDate;
+
+
     @Override
     public String toString() {
         return "Task{" +
@@ -70,6 +78,7 @@ public class Task {
             ", status=" + status +
             ", dueDate=" + dueDate +
             ", creationDate=" + creationDate +
+            ", refused=" + refused +
             '}';
     }
 }

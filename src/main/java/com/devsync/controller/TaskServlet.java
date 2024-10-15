@@ -12,6 +12,7 @@ import com.devsync.repository.Implementations.UserRepository;
 import com.devsync.service.TagService;
 import com.devsync.service.TaskService;
 import com.devsync.service.UserService;
+import com.devsync.util.UserUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -94,6 +95,7 @@ public class TaskServlet extends HttpServlet {
         }
 
         task.setTags(tags);
+        task.setRefused(false);
 
 
 
@@ -161,9 +163,9 @@ public class TaskServlet extends HttpServlet {
         Long userId = Long.parseLong(userIdParam);
 
         if(taskService.changeTask(taskId,oldTaskId,userId, session)) {
+            UserUtils.refreshUserInSession(request);
             response.sendRedirect(request.getContextPath() + "/home");
         }
-
 
 
     }
