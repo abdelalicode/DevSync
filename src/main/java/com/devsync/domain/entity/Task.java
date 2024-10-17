@@ -2,14 +2,10 @@ package com.devsync.domain.entity;
 
 import com.devsync.domain.enums.TaskStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -20,7 +16,6 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 
 public class Task {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -66,6 +61,12 @@ public class Task {
     @CreationTimestamp
     @Column(nullable = true)
     private LocalDateTime changeDate;
+
+    @OneToMany(mappedBy = "oldtask",  cascade = CascadeType.ALL)
+    private List<TaskRequest> oldtaskrequests;
+
+    @OneToMany(mappedBy = "newtask",  cascade = CascadeType.ALL)
+    private List<TaskRequest> newtaskrequests;
 
 
     @Override

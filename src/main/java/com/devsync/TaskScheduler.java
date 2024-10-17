@@ -3,6 +3,7 @@ package com.devsync;
 import com.devsync.domain.entity.Task;
 import com.devsync.domain.enums.TaskStatus;
 import com.devsync.repository.Implementations.TaskRepository;
+import com.devsync.repository.Implementations.TaskRequestRepository;
 import com.devsync.repository.Implementations.TokenRepository;
 import com.devsync.repository.Implementations.UserRepository;
 import com.devsync.service.TaskService;
@@ -27,7 +28,8 @@ public class TaskScheduler {
         TaskRepository taskRepository = new TaskRepository();
         UserRepository userRepository  = new UserRepository();
         TokenRepository tokenRepository  = new TokenRepository();
-        this.taskService = new TaskService(taskRepository, userRepository, tokenRepository);
+        TaskRequestRepository taskRequestRepository = new TaskRequestRepository();
+        this.taskService = new TaskService(taskRepository, userRepository, tokenRepository, taskRequestRepository);
     }
 
     public void start() {

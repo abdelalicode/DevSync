@@ -1,16 +1,10 @@
 package com.devsync.service;
 
 
-import com.devsync.domain.entity.Tag;
-import com.devsync.domain.entity.Task;
-import com.devsync.domain.entity.Token;
-import com.devsync.domain.entity.User;
+import com.devsync.domain.entity.*;
 import com.devsync.domain.enums.Role;
 import com.devsync.domain.enums.TaskStatus;
-import com.devsync.repository.Implementations.TagRepository;
-import com.devsync.repository.Implementations.TaskRepository;
-import com.devsync.repository.Implementations.TokenRepository;
-import com.devsync.repository.Implementations.UserRepository;
+import com.devsync.repository.Implementations.*;
 import com.devsync.util.DateUtils;
 import com.devsync.util.UserUtils;
 import jakarta.servlet.http.HttpSession;
@@ -22,17 +16,21 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
+
+
 public class TaskService {
 
 
     private TaskRepository taskRepository;
     private UserRepository userRepository;
     private TokenRepository tokenRepository;
+    private TaskRequestRepository taskRequestRepository;
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TokenRepository tokenRepository) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TokenRepository tokenRepository, TaskRequestRepository taskRequestRepository) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
+        this.taskRequestRepository = taskRequestRepository;
     }
 
     public boolean addTask(Task task) {
@@ -64,9 +62,11 @@ public class TaskService {
     }
 
     public List<Task> getUnassignedTasks() {
+        LocalDateTime now = LocalDateTime.now();
         List<Task> allTasks =  taskRepository.findAll();
         List<Task> unassignedTasks = allTasks.stream()
             .filter(t -> t.getAssignee() == null)
+            .filter(t -> ChronoUnit.DAYS.between(now, t.getDueDate()) > 3)
             .collect(Collectors.toList());
 
         return unassignedTasks;
@@ -119,18 +119,20 @@ public class TaskService {
         System.out.println(userToken);
 
         if(Objects.equals(task.getCreatedBy().getId(), user.getId())) {
-/*
-            System.out.println(task);
-*/
             return taskRepository.delete(taskId);
         }
         else if(userToken.getMonthlyDeletionTokens() > 0) {
 /*
             System.out.println(3);
-*/
+*/          if(task.isRefused()) {
+                session.setAttribute("error", "You are not allowed to delete this task.");
+                return false;
+            }
             taskRepository.delete(taskId);
             userToken.setMonthlyDeletionTokens(userToken.getMonthlyDeletionTokens() - 1);
+
             tokenRepository.update(userToken);
+
             return true;
         } else {
             session.setAttribute("error", "Not enough Tokens to Delete.");
@@ -145,23 +147,31 @@ public class TaskService {
         Task task = taskRepository.findById(taskId);
         Task oldTask = taskRepository.findById(oldTaskId);
 
+        if(oldTask.isRefused()) {
+            session.setAttribute("error", "Task already refused!");
+            return false;
+        }
+
         User user = userRepository.findById(userId);
+
+
 
         Token userToken = tokenRepository.findByUser(user);
 
         if(userToken.getDailyModificationTokens() > 0)
         {
-            task.setAssignee(user);
-            oldTask.setAssignee(null);
-            oldTask.setRefused(true);
-            oldTask.setChangeDate(LocalDateTime.now());
+            TaskRequest taskrequest = new TaskRequest();
 
-            taskRepository.update(task);
-            taskRepository.update(oldTask);
+            taskrequest.setType("modification");
+            taskrequest.setOldtask(oldTask);
+            taskrequest.setNewtask(task);
+            taskrequest.setRequestedBy(user);
+            taskrequest.setApproved(false);
+            taskrequest.setExpired(false);
 
-            userToken.setDailyModificationTokens(userToken.getDailyModificationTokens() - 1);
-
-            Token updatedToken = tokenRepository.update(userToken);
+            if(taskRequestRepository.save(taskrequest)) {
+                session.setAttribute("taskRequestSuccess", "Request to change task sent. Wait for Approval");
+            }
 
             return true;
         }
@@ -185,7 +195,89 @@ public class TaskService {
         return taskRemainingDaysMap;
     }
 
+    public List<TaskRequest> getAllUnapprovedRequests() {
+        List<TaskRequest> allRequests =  taskRequestRepository.findAll();
 
+        List<TaskRequest> unApprovedRequests = allRequests.stream()
+            .filter(r -> !r.isApproved())
+            .collect(Collectors.toList());
+
+
+        for (TaskRequest rqust : unApprovedRequests) {
+            LocalDateTime createdAt = rqust.getCreatedAt();
+            LocalDateTime now = LocalDateTime.now();
+            long hoursDiff = ChronoUnit.HOURS.between(createdAt, now);
+            rqust.setHoursDiff(hoursDiff);
+        }
+
+        return unApprovedRequests;
+    }
+
+    public boolean approveRequest(Long requId, Long newUserId , HttpSession session) {
+
+        TaskRequest taskRequest = taskRequestRepository.findById(requId);
+
+        if(taskRequest != null) {
+
+            User user  = taskRequest.getRequestedBy();
+            User newUser = userRepository.findById(newUserId);
+
+            Token userToken = tokenRepository.findByUser(user);
+            Task task = taskRequest.getNewtask();
+            Task oldTask = taskRequest.getOldtask();
+
+            task.setAssignee(user);
+            oldTask.setAssignee(newUser);
+            oldTask.setRefused(true);
+            oldTask.setChangeDate(LocalDateTime.now());
+
+            if(!updateTaskAssignee(oldTask, session)) {
+                return false;
+            }
+            updateTaskAssignee(task, session);
+
+
+//            taskRepository.update(task);
+//            taskRepository.update(oldTask);
+
+            taskRequest.setApproved(true);
+            taskRequest.setRespondedAt(LocalDateTime.now());
+
+            LocalDateTime createdAt = taskRequest.getCreatedAt();
+            LocalDateTime now = LocalDateTime.now();
+            long hoursDiff = ChronoUnit.HOURS.between(createdAt, now);
+
+            taskRequestRepository.update(taskRequest);
+
+            userToken.setDailyModificationTokens(userToken.getDailyModificationTokens() - 1);
+
+            if(hoursDiff > 12) {
+                userToken.setDailyModificationTokens(userToken.getDailyModificationTokens() * 2);
+            }
+
+            Token updatedToken = tokenRepository.update(userToken);
+            if(updatedToken != null) {
+                return true;
+            }
+        }
+        return false;
+
+
+
+
+
+
+    }
+
+    public boolean updateTaskDeadline(Long taskId, LocalDateTime dueDate , HttpSession session) {
+        Task task = taskRepository.findById(taskId);
+
+        task.setDueDate(dueDate);
+        if(taskRepository.update(task)) {
+            return true;
+        }
+        return false;
+    }
 
     public Map<Tag, Double> calculateCompletePercentageByTag(List<Task> tasks, List<Tag> tags) {
        Map<Tag, Double> completePercentageMap = new HashMap<>();

@@ -3,12 +3,10 @@ package com.devsync.controller;
 
 import com.devsync.domain.entity.Tag;
 import com.devsync.domain.entity.Task;
+import com.devsync.domain.entity.TaskRequest;
 import com.devsync.domain.entity.User;
 import com.devsync.domain.enums.TaskStatus;
-import com.devsync.repository.Implementations.TagRepository;
-import com.devsync.repository.Implementations.TaskRepository;
-import com.devsync.repository.Implementations.TokenRepository;
-import com.devsync.repository.Implementations.UserRepository;
+import com.devsync.repository.Implementations.*;
 import com.devsync.service.TagService;
 import com.devsync.service.TaskService;
 import com.devsync.service.UserService;
@@ -24,6 +22,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet(name = "TaskServlet", value = "/task")
 public class TaskServlet extends HttpServlet {
@@ -37,13 +36,24 @@ public class TaskServlet extends HttpServlet {
         TagRepository tagRepository = new TagRepository();
         UserRepository userRepository = new UserRepository();
         TokenRepository tokenRepository = new TokenRepository();
-        this.taskService = new TaskService(taskRepository,userRepository,tokenRepository);
+        TaskRequestRepository taskRequestRepository = new TaskRequestRepository();
+        this.taskService = new TaskService(taskRepository,userRepository,tokenRepository,taskRequestRepository);
         this.tagService = new TagService(tagRepository);
         this.userService = new UserService(userRepository, tokenRepository);
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
+        String action = request.getParameter("action");
+        if (action.equals("requests")) {
+            List<TaskRequest> unApprovedRequests = taskService.getAllUnapprovedRequests();
+            List<User> users = userService.getAllUsers();
+            Map<Task, Long> taskRemainingDaysMap = taskService.getTasksWithRemainingDays();
+            request.setAttribute("taskRemainingDays", taskRemainingDaysMap);
+            request.setAttribute("users", users);
+            request.setAttribute("unApprovedRequests", unApprovedRequests);
+            this.getServletContext().getRequestDispatcher("/WEB-INF/views/TaskRequests.jsp").forward(request, response);
+        }
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -62,6 +72,12 @@ public class TaskServlet extends HttpServlet {
                 break;
             case "changeTask":
                 changeTask(request, response, session);
+                break;
+            case "approveRequest":
+                approveRequest(request, response, session);
+                break;
+            case "updateTaskDeadline":
+                updateDeadline(request, response, session);
                 break;
             default:
                 addNewTask(request, response, session);
@@ -108,7 +124,7 @@ public class TaskServlet extends HttpServlet {
         String taskIdParam = request.getParameter("id");
         String statusParam = request.getParameter("status");
 
-            Long taskId = Long.parseLong(taskIdParam);
+       Long taskId = Long.parseLong(taskIdParam);
 
         Task task = taskService.getTaskById(taskId);
 
@@ -169,6 +185,36 @@ public class TaskServlet extends HttpServlet {
 
 
     }
+
+    private void approveRequest(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException {
+        String requesIdParam = request.getParameter("rqustId");
+        String newUserIdParam = request.getParameter("newUserId");
+
+        Long rqstId = Long.parseLong(requesIdParam);
+        Long newUserId = Long.parseLong(newUserIdParam);
+
+        if(taskService.approveRequest(rqstId, newUserId , session)) {
+            response.sendRedirect(request.getContextPath() + "/home");
+        }
+        else {
+            response.sendRedirect(request.getContextPath() + "/task?action=requests");
+        }
+
+
+    }
+
+
+    private void updateDeadline(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException {
+        String taskIdParam = request.getParameter("taskId");
+        LocalDateTime dueDate = LocalDateTime.parse(request.getParameter("dueDate"));
+
+        Long taskId = Long.parseLong(taskIdParam);
+
+        taskService.updateTaskDeadline(taskId, dueDate , session);
+        response.sendRedirect(request.getContextPath() + "/task?action=requests");
+
+    }
+
 
 
     public void destroy() {

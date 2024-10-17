@@ -121,7 +121,7 @@
         <h2 class="py-2 text-lg font-semibold text-teal-800">Your Tasks</h2>
 
 
-        <div class="relative min-h-96  sm:rounded-lg">
+        <div class="relative h-auto  sm:rounded-lg">
             <table class="w-auto text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-[10px] text-gray-700 uppercase dark:text-gray-400">
                 <tr>
@@ -142,7 +142,7 @@
                 <tbody class="text-[10px]">
 <c:forEach items="${ tasks }" var="task" varStatus="status">
 
-
+<c:if test="${!task.dueDate.isBefore(now)}">
 <tr class="border-b border-gray-200 dark:border-gray-700">
                     <td scope="row" class="pl-2 text-[9px] text-gray-900 whitespace-nowrap bg-gray-50 dark:text-white dark:bg-gray-800">
                         <c:choose>
@@ -214,11 +214,83 @@
 
                     </td>
                 </tr>
+</c:if>
 </c:forEach>
 
                 </tbody>
             </table>
         </div>
+
+
+        <h2 class="py-2 mt-8 text-lg font-semibold text-teal-800">Uncompleted Tasks</h2>
+
+        <div class="relative h-auto  sm:rounded-lg">
+            <table class="w-auto text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead class="text-[10px] text-gray-700 uppercase dark:text-gray-400">
+                <tr>
+                    <th scope="col" class="px-4 bg-gray-50 dark:bg-gray-800">
+                        Task Description
+                    </th>
+                    <th scope="col" class="px-4 py-3 bg-gray-50 dark:bg-gray-800">
+                        Status
+                    </th>
+                    <th scope="col" class="px-4 py-3">
+                        Assigned To
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="text-[10px]">
+                <c:forEach items="${ tasks }" var="task" varStatus="status">
+
+                    <c:if test="${task.dueDate.isBefore(now) and task.status == 'UNCOMPLETED'}">
+                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                            <td scope="row" class="pl-2 text-[9px] text-gray-900 whitespace-nowrap bg-gray-50 dark:text-white dark:bg-gray-800">
+                                <c:choose>
+                                    <c:when test="${fn:length(task.description) > 25}">
+                                        <c:out value="${fn:substring(task.description, 0, 25)}"/>...
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:out value="${task.description}"/>
+                                    </c:otherwise>
+                                </c:choose>
+                                <button data-popover-target="pop${task.id}" data-popover-placement="bottom-end" type="button">.<span class="sr-only">Show information</span></button></p>
+                                <div data-popover id="pop${task.id}" role="tooltip" class="absolute z-10 w-auto invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
+                                    <div class="p-3 space-y-2">
+                                        <p class="text-[8px]">${task.description}</p>
+                                    </div>
+                                    <div data-popper-arrow></div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 bg-gray-50 dark:bg-gray-800">
+
+
+                        <span class="inline-flex bg-gray-200 items-center  px-2 rounded-lg text-xs font-semibold">
+                            <span class="text-[8px]">
+	  <c:out value="${task.status}"/>
+	</span>
+  </span>
+
+                            </td>
+                            <td class="px-4 py-3">
+                                <c:choose>
+                                    <c:when test="${task.assignee == null}">
+                                        <c:out value="No one"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:out value="${task.assignee.username}"/>
+                                    </c:otherwise>
+                                </c:choose>
+
+
+                            </td>
+                        </tr>
+                    </c:if>
+                </c:forEach>
+
+                </tbody>
+            </table>
+        </div>
+
 
     </div>
     <div class="col-span-2 ... relative px-8 bg-slate-50 rounded-xl  min-h-72 shadow-sky-200 m-8">
@@ -231,18 +303,42 @@
                     <span class="sr-only">Error icon</span>
                 </div>
                 <div class="ms-3 text-sm font-normal">${sessionScope.error}</div>
+
                 <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-danger" aria-label="Close">
+
                     <span class="sr-only">Close</span>
                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                     </svg>
                 </button>
             </div>
+            <c:remove var="error" scope="session" />
         </c:if>
 
+        <c:if test="${not empty sessionScope.taskRequestSuccess}">
+            <div id="toast-success" class="flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
+                <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
+                    <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
+                    </svg>
+                    <span class="sr-only">Check icon</span>
+                </div>
+                <div class="ms-3 text-sm font-normal">${sessionScope.taskRequestSuccess}</div>
+                <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-success" aria-label="Close">
+                    <span class="sr-only">Close</span>
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                </button>
+            </div>
+            <c:remove var="taskRequestSuccess" scope="session" />
+        </c:if>
+
+
+
         <h2 class="py-3  text-lg font-semibold text-teal-800">Your Board</h2>
-        <div class="grid grid-cols-3 gap-4 min-h-96">
-            <div class="bg-slate-50 max-h-screen" id="todo-column">
+        <div class="grid grid-cols-3 h-[450px] overflow-y-auto gap-4 min-h-96">
+            <div class="bg-teal-50/50 max-h-screen" id="todo-column">
                 <div class="bg-slate-50 px-4 pb-2">
                     <span class="bg-red-400 text-red-800 text-xs font-medium me-2 px-1.5 rounded-full dark:bg-red-900 dark:text-red-300"></span>
                     <span class="font-semibold text-xs">To Do</span>
@@ -255,9 +351,17 @@
         <div class="">
             <div class="relative  max-w-sm max-h-lg min-h-md shadow-lg  draggable-card mb-[12px]" id="card-${task.id}">
 
-    <button data-modal-target="popup-mod${task.id}" data-modal-toggle="popup-mod${task.id}"  type="button" class="absolute hover:bg-red-400 top-0 right-0 z-10 text-white bg-transparent  focus:ring-0 focus:ring-blue-300 font-medium  text-sm px-2 py-1  mb-2 dark:bg-blue-600  focus:outline-none dark:focus:ring-blue-800">
-        <img width="10" height="10" src="https://img.icons8.com/ios-filled/50/delete-sign--v1.png" alt="delete-sign--v1"/>
-    </button>
+                <c:choose>
+                    <c:when test="${task.refused and user.role == 'INDIVIDUAL'}">
+
+                    </c:when>
+                    <c:otherwise>
+                        <button data-modal-target="popup-mod${task.id}" data-modal-toggle="popup-mod${task.id}"  type="button" class="absolute hover:bg-red-400 top-0 right-0 z-10 text-white bg-transparent  focus:ring-0 focus:ring-blue-300 font-medium  text-sm px-2 py-1  mb-2 dark:bg-blue-600  focus:outline-none dark:focus:ring-blue-800">
+                            <img width="10" height="10" src="https://img.icons8.com/ios-filled/50/delete-sign--v1.png" alt="delete-sign--v1"/>
+                        </button>
+                    </c:otherwise>
+                </c:choose>
+
 
     <div class="relative h-32 p-2  bg-white border-l-4 border-red-500 ">
                     <div class="flex items-center -mt-1">
@@ -324,9 +428,13 @@
                                         <c:when test="${user.role == 'INDIVIDUAL'}">
 
                                             <c:if test="${task.createdBy.role == 'MANAGER'}">
-                                                <div class="flex space-x-8 items-center p-3 text-xs font-medium text-blue-600 border-t border-gray-200 rounded-b-lg bg-gray-50 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-blue-500 hover:underline">
+                                                <div class="flex space-x-2 items-center p-2 text-xs font-medium text-blue-600 border-t border-gray-200 rounded-b-lg bg-gray-50 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-blue-500 hover:underline">
                                                     <p>Change The Task</p>
-                                                    <p><c:out value="${user.token.dailyModificationTokens} Tokens Left"/></p>
+                                                    <div class="flex">
+                                                        <img width="16" height="10" src="https://img.icons8.com/color/48/cheap--v1.png" alt="cheap--v1"/>
+                                                        <p><c:out value="${user.token.dailyModificationTokens} Tokens Left"/></p>
+                                                    </div>
+
                                                 </div>
                                                 <c:forEach items="${ unassignedTasks }" var="unassignedtask" varStatus="status">
 
@@ -408,10 +516,10 @@
 
 
 
-                    <c:if test="${user.role == 'MANAGER' && task.refused}">
-                        <div class="absolute p-3 h-2/5 inset-0 z-20 bg-yellow-300 pointer-events-none">
-                            <p class="text-black font-semibold text-xs">THIS TASK HAS BEEN CHANGED</p>
-                            <p class="text-black font-medium text-[10px]">Assign it to someone else</p>
+                    <c:if test="${user.role == 'MANAGER' && task.refused && task.assignee == null}">
+                        <div class="absolute mt-12 p-3 h-2/5 inset-0 z-20 bg-red-600 pointer-events-none">
+                            <p class="text-white font-semibold text-xs">THIS TASK HAS BEEN CHANGED</p>
+                            <p class="text-white font-medium text-[10px]">Assign it to someone else</p>
                         </div>
                     </c:if>
 
@@ -453,7 +561,7 @@
 </c:forEach>
 </div>
 
-            <div class="bg-slate-50  max-h-screen " id="ongoing-column" >
+            <div class="bg-teal-50/50  max-h-screen" id="ongoing-column" >
                 <div class="bg-slate-50 px-4 pb-2">
                     <span class="bg-green-400 text-red-800 text-xs font-medium me-2 px-1.5 rounded-full dark:bg-red-900 dark:text-red-300"></span>
                     <span class="font-semibold text-xs">On Going</span>
@@ -561,7 +669,7 @@
 
             </div>
 
-            <div class="bg-slate-50" id="completed-column">
+            <div class="bg-teal-50/50" id="completed-column">
                 <div class="bg-slate-50 px-4 pb-2">
                     <span class="bg-blue-400 text-red-800 text-xs font-medium me-2 px-1.5 rounded-full dark:bg-red-900 dark:text-red-300"></span>
                     <span class="font-semibold text-xs">Completed</span>

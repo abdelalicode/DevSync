@@ -5,10 +5,7 @@ import com.devsync.domain.entity.Task;
 import com.devsync.domain.entity.Token;
 import com.devsync.domain.entity.User;
 import com.devsync.domain.enums.Role;
-import com.devsync.repository.Implementations.TagRepository;
-import com.devsync.repository.Implementations.TaskRepository;
-import com.devsync.repository.Implementations.TokenRepository;
-import com.devsync.repository.Implementations.UserRepository;
+import com.devsync.repository.Implementations.*;
 import com.devsync.service.TagService;
 import com.devsync.service.TaskService;
 import com.devsync.service.TokenService;
@@ -37,7 +34,8 @@ public class StatsServlet extends HttpServlet {
         TagRepository tagRepository = new TagRepository();
         UserRepository userRepository = new UserRepository();
         TokenRepository tokenRepository = new TokenRepository();
-        this.taskService = new TaskService(taskRepository,userRepository,tokenRepository);
+        TaskRequestRepository taskRequestRepository = new TaskRequestRepository();
+        this.taskService = new TaskService(taskRepository,userRepository,tokenRepository,taskRequestRepository);
         this.tagService = new TagService(tagRepository);
         this.userService = new UserService(userRepository, tokenRepository);
         this.tokenService = new TokenService(tokenRepository);
@@ -51,11 +49,14 @@ public class StatsServlet extends HttpServlet {
 
         List<Task> tasks = taskService.getTasks(AuthUser);
         List<Tag> tags = tagService.getTags();
+        Long modificationsTokens = tokenService.getModificationsSum();
+
 
         Map<Tag, Double> CompletPerTag = taskService.calculateCompletePercentageByTag(tasks, tags);
         request.setAttribute("CompletPerTag", CompletPerTag);
         request.setAttribute("tags", tags);
         request.setAttribute("user", AuthUser);
+        request.setAttribute("modificationsTokens", modificationsTokens);
         this.getServletContext().getRequestDispatcher("/WEB-INF/views/Stats.jsp").forward(request,response);
     }
 
