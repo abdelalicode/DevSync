@@ -46,7 +46,7 @@ public class Token {
             '}';
     }
 
-    public void resetDailyTokens() {
+    /*public void resetDailyTokens() {
         this.dailyModificationTokens = 2;
         this.lastDailyReset = LocalDate.now();
     }
@@ -54,5 +54,5 @@ public class Token {
     public void resetMonthlyTokens() {
         this.monthlyDeletionTokens = 1;
         this.lastMonthlyReset = LocalDate.now();
-    }
+    }*/
 }

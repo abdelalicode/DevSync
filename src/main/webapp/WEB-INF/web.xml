@@ -10,5 +10,10 @@
         </jsp-property-group>
     </jsp-config>
 
+
+    <listener>
+        <listener-class>com.devsync.listener.AppContextListener</listener-class>
+    </listener>
+
 </web-app>
 

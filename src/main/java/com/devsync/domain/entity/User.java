@@ -6,8 +6,6 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Entity
@@ -53,6 +51,9 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Token token;
+
+    @OneToMany(mappedBy = "requestedBy", cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
+    private List<TaskRequest> taskrequests;
 
 
     @Override
