@@ -41,20 +41,17 @@ public class TaskService {
     }
 
     public List<Task> getTasks(User user) {
-        List<Task> allTasks =  taskRepository.findAll();
+        List<Task> allTasks = taskRepository.findAll();
 
         if(user.getRole() == Role.INDIVIDUAL) {
             return allTasks.stream()
                 .filter(t -> (t.getAssignee() != null && Objects.equals(t.getAssignee().getId(), user.getId()))
-                    || Objects.equals(t.getCreatedBy().getId(), user.getId()))
+                    || (t.getCreatedBy() != null && Objects.equals(t.getCreatedBy().getId(), user.getId())))
                 .collect(Collectors.toList());
-
         }
         else {
             return allTasks;
         }
-
-
     }
 
     public List<Task> getAllTasks () {
