@@ -4,6 +4,7 @@ import com.devsync.domain.entity.User;
 import com.devsync.repository.Implementations.TokenRepository;
 import com.devsync.repository.Implementations.UserRepository;
 import com.devsync.service.UserService;
+import com.devsync.util.UserUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -24,6 +25,8 @@ public class AuthServlet extends HttpServlet {
         UserRepository userRepository = new UserRepository();
         TokenRepository tokenRepository = new TokenRepository();
         this.userService = new UserService(userRepository , tokenRepository);
+        UserUtils.init(this.userService);
+
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {

@@ -2,14 +2,10 @@ package com.devsync.domain.entity;
 
 import com.devsync.domain.enums.TaskStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -20,7 +16,6 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 
 public class Task {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,8 +31,7 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private TaskStatus status;
 
-    @NotNull(message = "Start date is required.")
-    @FutureOrPresent(message = "Deadline cannot be in the past.")
+
     private LocalDateTime dueDate;
 
     @ManyToOne 
@@ -61,6 +55,20 @@ public class Task {
     private LocalDateTime creationDate;
 
 
+    @Column(name = "isrefused", nullable = false)
+    private boolean refused;
+
+    @CreationTimestamp
+    @Column(nullable = true)
+    private LocalDateTime changeDate;
+
+    @OneToMany(mappedBy = "oldtask",  cascade = CascadeType.ALL)
+    private List<TaskRequest> oldtaskrequests;
+
+    @OneToMany(mappedBy = "newtask",  cascade = CascadeType.ALL)
+    private List<TaskRequest> newtaskrequests;
+
+
     @Override
     public String toString() {
         return "Task{" +
@@ -70,6 +78,7 @@ public class Task {
             ", status=" + status +
             ", dueDate=" + dueDate +
             ", creationDate=" + creationDate +
+            ", refused=" + refused +
             '}';
     }
 }

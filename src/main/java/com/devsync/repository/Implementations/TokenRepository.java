@@ -44,15 +44,14 @@ public class TokenRepository {
     }
 
 
-    public boolean update(Token token) {
+    public Token update(Token token) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
-        boolean isUpdated = false;
         try {
             transaction.begin();
-            entityManager.merge(token);
+            Token updttoken = entityManager.merge(token);
             transaction.commit();
-            isUpdated = true;
+            return updttoken;
         } catch (Exception e) {
             if (transaction.isActive()) {
                 transaction.rollback();
@@ -60,7 +59,7 @@ public class TokenRepository {
             e.printStackTrace();
         }
 
-        return isUpdated;
+        return null;
     }
 
 
